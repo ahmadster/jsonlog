@@ -41,15 +41,20 @@ clean(Str) when is_list(Str) ->
 	end;
 clean(Map) when is_map(Map) ->
 	maps:fold(fun(Key, Value, Acc) ->
-		maps:put(Key, clean(Value), Acc)
+		maps:put(to_binary(Key), clean(Value), Acc)
 	          end, #{}, Map);
-clean(Other) -> erlang:iolist_to_binary(io_lib:format("~p", [Other])).
+clean(Other) -> to_binary(Other).
+
+to_binary(Binary) when is_binary(Binary) -> Binary;
+to_binary(Thing) -> erlang:iolist_to_binary(io_lib:format("~p", [Thing])).
 
 %%Msg = #{file => "application_controller.erl",line => 1929,time => 1577294708050727}.
 %%Msg = #{label => {application_controller, progress}, report => [{application, cowlib}, {started_at, nonode@nohost}]}.
+%%Msg = #{major => 2, minor => 5, state => #{buffer => <<>>,digital => #{0 => #{0 => 0, 1 => 0, 2 => 0,3 => 0, 4 => 0, 5 => 0, 6 => 0, 7 => 0}, 1 => #{0 => 0, 1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0, 6 => 0, 7 => 0}}, serial => {gen_serial, port, pid}}, what => "Firmata version"}.
+%%Msg3 = #{1 => "Firmata version"}.
 %%Config = #{jsone_options => []}.
 %%Level = info.
 %%Meta = #{}.
-%%jsonlog:format(#{level => Level, msg => {report, Msg}, meta => Meta}, Config).
+%%jsonlog:format(#{level => Level, msg => {report, Msg3}, meta => Meta}, Config).
 %%
 %%jsone:encode(jsonlog:clean(Msg)).

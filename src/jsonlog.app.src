@@ -2,7 +2,7 @@
 	{description, "A JSON erlang logger formatter"},
 	{vsn, git},
 	{registered, []},
-	{applications, [kernel, stdlib]},
+	{applications, [kernel, stdlib, jsone]},
 	{env, []},
 	{modules, []},
 	{maintainers, ["ahmadster"]},

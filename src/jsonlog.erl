@@ -1,15 +1,14 @@
 -module(jsonlog).
 
 %% logger callbacks
--export([format/2]).
+-export([format/2, clean/1]).
 
 -spec format(LogEvent, Config) -> unicode:chardata() when
 	LogEvent :: logger:log_event(),
 	Config :: logger:formatter_config().
-format(#{level := Level, msg := {report, Msg}, meta := Meta}, Config) when is_map(
-	Msg) ->
-	Meta0 = maps:put(level, Level, Meta),
-	format_msg(Msg, Meta0, Config);
+format(#{level := Level, msg := {report, Msg}, meta := Meta}, Config)
+	when is_map(Msg) ->
+	encode(Msg, maps:put(level, Level, Meta), Config);
 format(Map = #{msg := {report, KeyVal}}, Config) when is_list(KeyVal) ->
 	format(Map#{msg := {report, maps:from_list(KeyVal)}}, Config);
 format(Map = #{msg := {string, String}}, Config) ->
@@ -20,10 +19,37 @@ format(Map = #{msg := {Format, Terms}}, Config) ->
 	Msg = #{text => String},
 	format(Map#{msg := {report, Msg}}, Config).
 
-format_msg(Msg, Meta, _Config) when
-	is_map(Msg) andalso
-		is_map(Meta) andalso
-		is_map(_Config) ->
-	Msg0 = maps:merge(Msg, Meta),
-	X = jsone:encode(Msg0),
-	<<X/binary, <<"\n">>/binary>>.
+encode(Map, Meta, #{jsone_options := Options}) when is_map(Map) andalso is_map(Meta) ->
+%%	CMap = maps:with([what, file, line, time], maps:merge(Map, Meta)),
+%%	io:format("ENCODING:~p~n~p~n~n", [Options, Map]),
+	J = jsone:encode(clean(Map), Options),
+	<<J/binary, <<"\n">>/binary>>.
+
+
+%% clean
+%% we'll get a FORMATTER CRASH if a value jsone can't handle makes it thru.
+clean(Num) when is_number(Num) -> Num;
+clean(Bin) when is_binary(Bin) -> Bin;
+clean(Pid) when is_pid(Pid) -> list_to_binary(pid_to_list(Pid));
+clean(Atom) when is_atom(Atom) -> atom_to_binary(Atom, utf8);
+clean(Port) when is_port(Port) -> clean(port_to_list(Port));
+clean(Tuple) when is_tuple(Tuple) -> clean(tuple_to_list(Tuple));
+clean(Str) when is_list(Str) ->
+	case io_lib:printable_list(Str) of
+		true -> list_to_binary(Str);
+		false -> lists:map(fun clean/1, Str)
+	end;
+clean(Map) when is_map(Map) ->
+	maps:fold(fun(Key, Value, Acc) ->
+		maps:put(Key, clean(Value), Acc)
+	          end, #{}, Map);
+clean(Other) -> erlang:iolist_to_binary(io_lib:format("~p", [Other])).
+
+%%Msg = #{file => "application_controller.erl",line => 1929,time => 1577294708050727}.
+%%Msg = #{label => {application_controller, progress}, report => [{application, cowlib}, {started_at, nonode@nohost}]}.
+%%Config = #{jsone_options => []}.
+%%Level = info.
+%%Meta = #{}.
+%%jsonlog:format(#{level => Level, msg => {report, Msg}, meta => Meta}, Config).
+%%
+%%jsone:encode(jsonlog:clean(Msg)).

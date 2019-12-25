@@ -1,0 +1,11 @@
+{application, jsonlog, [
+	{description, "A JSON erlang logger formatter"},
+	{vsn, git},
+	{registered, []},
+	{applications, [kernel, stdlib]},
+	{env, []},
+	{modules, []},
+	{maintainers, ["ahmadster"]},
+	{licenses, ["Apache 2.0"]},
+	{links, [{"Github", "https://github.com/ahmadster/jsonlog"}]}
+]}.

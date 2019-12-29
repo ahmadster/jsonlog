@@ -7,16 +7,16 @@ Add `jsonlog` as a dependency. Then set this in your `sys.config` file:
 
 ```erlang
 [
-	{my_app, []},
-	{kernel, [
-		{logger, [
-			{handler, default, logger_std_h,
-				#{formatter => {
-					jsonlog, #{}
-				}}
-			}
-		]}
-		, {logger_level, info}
-	]}
+  {my_app, []}
+  ,{kernel, [
+    {logger, [
+      {handler, default, logger_std_h,
+        #{formatter => {
+          jsonlog, #{}
+        }}
+      }
+    ]}
+    ,{logger_level, info}
+  ]}
 ].
 ```

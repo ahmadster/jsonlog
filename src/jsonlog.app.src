@@ -1,6 +1,6 @@
 {application, jsonlog, [
 	{description, "A JSON erlang logger formatter"},
-	{vsn, git},
+	{vsn, "0.0.1"},
 	{registered, []},
 	{applications, [kernel, stdlib, jsone]},
 	{env, []},
